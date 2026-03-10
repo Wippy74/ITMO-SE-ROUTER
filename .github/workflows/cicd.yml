@@ -1,0 +1,97 @@
+on:
+  pull_request_target:
+    branches: ["main"]
+
+jobs:
+  tests:
+    name: Run Tests
+    uses: is-itmo-cpp/cicd/.github/workflows/tests.yml@v2
+    with:
+      runs-on: itmogus
+      cmake-flags: "-DCPR_USE_SYSTEM_CURL=ON"
+      timeout: 7
+      platforms: |
+        [
+          {
+            "id": "clang",
+            "name": "clang",
+            "name_html": "<code>clang</code>",
+            "compiler": "clang++-19",
+            "flags": ""
+          },
+          {
+            "id": "clang_san",
+            "name": "clang (san)",
+            "name_html": "<code>clang-san</code>",
+            "compiler": "clang++-19",
+            "flags": "-fsanitize=address,undefined"
+          }
+        ]
+
+  codestyle:
+    name: Codestyle
+    uses: is-itmo-cpp/cicd/.github/workflows/codestyle.yml@v2
+    with:
+      runs-on: itmogus
+      cmake-flags: "-DCPR_USE_SYSTEM_CURL=ON"
+      levels: |
+        [9, 6, 3, 0]
+
+      tidy-config: |
+        Checks:
+          -*,
+          bugprone-misplaced-widening-cast,
+          bugprone-redundant-branch-condition,
+          bugprone-suspicious-include,
+          llvm-namespace-comment,
+          misc-header-include-cycle,
+          misc-include-cleaner,
+          readability-delete-null-pointer,
+          readability-identifier-naming,
+          readability-misleading-indentation,
+          readability-redundant-control-flow,
+          readability-static-accessed-through-instance,
+
+        CheckOptions:
+          - { key: readability-identifier-naming.NamespaceCase,            value: lower_case }
+          - { key: readability-identifier-naming.ClassCase,                value: CamelCase  }
+          - { key: readability-identifier-naming.StructCase,               value: CamelCase  }
+          - { key: readability-identifier-naming.TemplateParameterCase,    value: CamelCase  }
+          - { key: readability-identifier-naming.FunctionCase,             value: CamelCase  }
+          - { key: readability-identifier-naming.VariableCase,             value: lower_case }
+          - { key: readability-identifier-naming.ClassMemberCase,          value: lower_case }
+          - { key: readability-identifier-naming.ClassMemberSuffix,        value: _          }
+          - { key: readability-identifier-naming.PrivateMemberSuffix,      value: _          }
+          - { key: readability-identifier-naming.ProtectedMemberSuffix,    value: _          }
+          - { key: readability-identifier-naming.EnumConstantCase,         value: CamelCase  }
+          - { key: readability-identifier-naming.EnumConstantPrefix,       value: k          }
+          - { key: readability-identifier-naming.ConstexprVariableCase,    value: CamelCase  }
+          - { key: readability-identifier-naming.ConstexprVariablePrefix,  value: k          }
+          - { key: readability-identifier-naming.GlobalConstantCase,       value: CamelCase  }
+          - { key: readability-identifier-naming.GlobalConstantPrefix,     value: k          }
+          - { key: readability-identifier-naming.MemberConstantCase,       value: CamelCase  }
+          - { key: readability-identifier-naming.MemberConstantPrefix,     value: k          }
+          - { key: readability-identifier-naming.StaticConstantCase,       value: CamelCase  }
+          - { key: readability-identifier-naming.StaticConstantPrefix,     value: k          }
+
+  coverage:
+    name: Coverage
+    uses: is-itmo-cpp/cicd/.github/workflows/coverage.yml@v2
+    with:
+      runs-on: itmogus
+      timeout: 7
+      cmake-flags: "-DCPR_USE_SYSTEM_CURL=ON"
+      levels: |
+        [0, 50, 65, 80]
+
+  report:
+    name: Report
+    if: ${{ !cancelled() }}
+    permissions:
+      pull-requests: write
+    uses: is-itmo-cpp/cicd/.github/workflows/report.yml@v2
+    needs: [ tests, codestyle, coverage ]
+    with:
+      runs-on: itmogus
+      data: ${{ toJSON(needs) }}
+
