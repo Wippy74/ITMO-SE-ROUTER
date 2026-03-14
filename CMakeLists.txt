@@ -7,6 +7,29 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 
-# TODO: add your implementation here...
+include(FetchContent)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+
+
+FetchContent_Declare(
+    cpr
+    GIT_REPOSITORY https://github.com/libcpr/cpr.git
+    GIT_TAG 1.11.0
+)
+
+FetchContent_MakeAvailable(json cpr)
+
+add_executable(labwork7
+               ./bin/main.cpp
+               ./src/cache.cpp
+               ./src/api_handler.cpp
+               ./src/router.cpp
+)
+
+target_link_libraries(labwork7 PRIVATE nlohmann_json::nlohmann_json cpr::cpr)
 
 include(tests/coverage.cmake)
