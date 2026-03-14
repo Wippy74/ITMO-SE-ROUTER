@@ -26,3 +26,36 @@ std::optional<std::string> Cache::get(const std::string& key) {
   }
   return std::nullopt;
 }
+
+void Cache::put(const std::string& key, const std::string& value) {
+  old_.erase(key);
+  auto it = fresh_.find(key);
+  if (it != fresh_.end()) {
+    it->second.val = value;
+    it->second.created = std::chrono::steady_clock::now();
+    return;
+  }
+  if (fresh_.size() >= gen_limit_) {
+    UpdateGen;
+  }
+  fresh_.emplace(key, Entry{key, std::chrono::steady_clock::now()});
+}
+
+void Cache::clear() {
+  old_.clear();
+  fresh_.clear();
+}
+
+size_t Cache::FreshSize() const {
+  return fresh_.size();
+}
+
+size_t Cache::OldSize() const {
+  return old_.size();
+}
+
+void Cache::UpdateGen() {
+  old_ = std::move(fresh_);
+  fresh_.clear();
+  fresh_.reserve(gen_limit_);
+}
