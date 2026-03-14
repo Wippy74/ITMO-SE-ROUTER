@@ -29,4 +29,6 @@ private:
 
   std::unordered_map<std::string, Entry> fresh_;
   std::unordered_map<std::string, Entry> old_;
+
+  void UpdateGen();
 };
