@@ -16,14 +16,14 @@ jobs:
             "id": "clang",
             "name": "clang",
             "name_html": "<code>clang</code>",
-            "compiler": "clang++-19",
+            "compiler": "clang++-21",
             "flags": ""
           },
           {
             "id": "clang_san",
             "name": "clang (san)",
             "name_html": "<code>clang-san</code>",
-            "compiler": "clang++-19",
+            "compiler": "clang++-21",
             "flags": "-fsanitize=address,undefined"
           }
         ]
@@ -36,7 +36,7 @@ jobs:
       cmake-flags: "-DCPR_USE_SYSTEM_CURL=ON"
       levels: |
         [9, 6, 3, 0]
-
+      tidy-version: 21
       tidy-config: |
         Checks:
           -*,
