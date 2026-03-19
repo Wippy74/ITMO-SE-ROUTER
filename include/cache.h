@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 #include <iostream>
 #include <list>
 #include <optional>
@@ -9,9 +11,12 @@
 
 class Cache {
 public:
-  explicit Cache(const size_t limit, std::chrono::seconds ttl) : gen_limit_(limit), TTL_(ttl) {}
+  explicit Cache(const std::string& filepath, const size_t limit = 100, std::chrono::seconds ttl = std::chrono::seconds(1800));
+
+  ~Cache();
 
   std::optional<std::string> get(const std::string& key);
+
   void put(const std::string& key, const std::string& value);
 
   void clear();
@@ -21,14 +26,21 @@ public:
 private:
   struct Entry {
     std::string val;
-    std::chrono::steady_clock::time_point created;
+    std::chrono::system_clock::time_point created;
   };
 
+  const std::string path_;
   const size_t gen_limit_;
   const std::chrono::seconds TTL_;
 
   std::unordered_map<std::string, Entry> fresh_;
   std::unordered_map<std::string, Entry> old_;
+
+  void LoadFromMap();
+  void SaveToFile() const;
+
+  nlohmann::json Serialize();
+  std::unordered_map<std::string, Entry> Deserialize();
 
   void UpdateGen();
 };
