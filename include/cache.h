@@ -29,7 +29,7 @@ private:
     std::chrono::system_clock::time_point created;
   };
 
-  const std::string path_;
+  const std::string filepath_;
   const size_t gen_limit_;
   const std::chrono::seconds TTL_;
 
@@ -39,7 +39,7 @@ private:
   void LoadFromFile();
   void SaveToFile() const;
 
-  nlohmann::json Serialize(const std::unordered_map<std::string, Entry>& m);
+  nlohmann::json Serialize(const std::unordered_map<std::string, Entry>& m) const;
   std::unordered_map<std::string, Entry> Deserialize(const nlohmann::json& j, std::chrono::seconds ttl);
 
   void UpdateGen();
