@@ -36,11 +36,11 @@ private:
   std::unordered_map<std::string, Entry> fresh_;
   std::unordered_map<std::string, Entry> old_;
 
-  void LoadFromMap();
+  void LoadFromFile();
   void SaveToFile() const;
 
-  nlohmann::json Serialize();
-  std::unordered_map<std::string, Entry> Deserialize();
+  nlohmann::json Serialize(const std::unordered_map<std::string, Entry>& m);
+  std::unordered_map<std::string, Entry> Deserialize(const nlohmann::json& j, std::chrono::seconds ttl);
 
   void UpdateGen();
 };
