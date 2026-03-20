@@ -110,3 +110,45 @@ std::unordered_map<std::string, Cache::Entry> Cache::Deserialize(const nlohmann:
   }
   return m;
 }
+
+void Cache::LoadFromFile() {
+  try {
+    std::ifstream in(filepath_);
+    if (!in) {
+      std::cerr << "Failed to open :" << filepath_ << '\n';
+      return;
+    }
+    nlohmann::json root = nlohmann::json::parse(in);
+    fresh_ = Deserialize(root.value("fresh", nlohmann::json::object()), TTL_);
+    old_ = Deserialize(root.value("old", nlohmann::json::object()), TTL_);
+    if (fresh_.size() > gen_limit_) {
+      UpdateGen;
+    }
+  } catch (const std::exception& ex) {
+    std::cerr << "Failed to read cache: " << ex.what() << '\n';
+    fresh_.clear();
+    old_.clear();
+  }
+}
+
+void Cache::SaveToFile() const {
+  try {
+    auto p = std::filesystem::path(filepath_).parent_path();
+    if (!p.empty() && !std::filesystem::exists(p)) {
+      std::filesystem::create_directories(p);
+    }
+    nlohmann::json root = {{"fresh", Serialize(fresh_)} , {"old", Serialize(old_)}};
+    std::string temp_path = filepath_ + ".tmp";
+    {
+      std::ofstream out(temp_path, std::ios::trunc);
+      if (!out.is_open()) {
+        std::cerr << "Failed to create: " << temp_path << '\n';
+        return;
+      }
+      out << root.dump(2);
+    }
+    std::filesystem::rename(temp_path, filepath_);
+  } catch (const std::exception& ex) {
+    std::cerr << "Failed to write to cache: " << ex.what() << '\n';
+  }
+}
