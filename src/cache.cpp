@@ -89,3 +89,24 @@ nlohmann::json Cache::Serialize(const std::unordered_map<std::string, Entry>& m)
   }
   return o;
 }
+
+std::unordered_map<std::string, Cache::Entry> Cache::Deserialize(const nlohmann::json& j, std::chrono::seconds ttl) {
+  std::unordered_map<std::string, Entry> m;
+  if (!j.is_object()) {
+    return m;
+  }
+  auto now = std::chrono::system_clock::now();
+  for (auto& [key, val] : j.items()) {
+    if (!val.contains("v") || !val.contains("t")) {
+      continue;
+    }
+    int64_t epoch = val["t"].get<int64_t>();
+    auto created = std::chrono::system_clock::time_point(std::chrono::seconds(epoch));
+    if ((now - created) > ttl) continue;
+    Entry e;
+    e.val = val["v"].get<std::string>();
+    e.created = created;
+    m.emplace(key, std::move(e));
+  }
+  return m;
+}
