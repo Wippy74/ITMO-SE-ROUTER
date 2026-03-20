@@ -13,7 +13,7 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
   for (const auto& [Key, Value] : params) {
     CprParams.Add({Key, Value});
   }
-  cpr::Response r = cpr::Get(cpr::Url{total_url}, CprParams, cpr::Timeout{150000});
+  cpr::Response r = cpr::Get(cpr::Url{total_url}, CprParams, cpr::Timeout{15000});
   if (r.status_code == 0) {
     throw std::runtime_error("Нет такой сети: " + r.error.message);
   }
@@ -59,7 +59,7 @@ std::vector<Segment> ApiHandler::search(const std::string& from, const std::stri
   try {
     data = HttpGet("/v3.0/search", params);
   } catch (const std::exception& ex) {
-    std::cerr << "Ошибка при поиске маршрута из " << from << " в " << to << ": " << ex.what() << '\n';
+    std::cerr << "Ошибка при поиске рейса из " << from << " в " << to << ": " << ex.what() << '\n';
     return {};
   }
   std::vector<Segment> res;
@@ -74,4 +74,13 @@ std::vector<Segment> ApiHandler::search(const std::string& from, const std::stri
     }
   }
   return res;
+}
+
+std::string MakeCacheKey(const std::string& endpoint, const std::map<std::string, std::string>& params) {
+  std::ostringstream oss;
+  oss << endpoint;
+  for (auto& [key, value] : params) {
+    oss << "|" << key << "=" << value;
+  }
+  return oss.str();
 }
