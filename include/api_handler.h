@@ -13,6 +13,7 @@ public:
   ApiHandler(const std::string& ApiKey, Cache& cache);
 
   nlohmann::json Search(const std::string& from, const std::string& to, const std::string& date, bool transfers = false);
+  std::string TakeCity(const std::string& city);
 private:
   static constexpr const char* BaseURL = "https://api.rasp.yandex-net.ru";
   static constexpr std::chrono::hours StationListTTL_ = std::chrono::hours(96);

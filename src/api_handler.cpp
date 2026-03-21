@@ -2,6 +2,15 @@
 
 #include <cpr/cpr.h>
 
+std::string ApiHandler::TakeCity(const std::string& city) {
+  EnsureStationList();
+  auto it = CityIdx_.find(city);
+  if (it != CityIdx_.end()) {
+    return it->second;
+  }
+  throw std::runtime_error("Город: " + city + "не найден");
+}
+
 void ApiHandler::EnsureStationList() {
   auto now = std::chrono::system_clock::now();
   if (!CityIdx_.empty() && ((now - StationListLoaded_) < StationListTTL_)) {
