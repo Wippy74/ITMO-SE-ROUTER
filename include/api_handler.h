@@ -36,7 +36,7 @@ private:
   std::unordered_map<std::string, std::string> CityIdx_;
 
   void EnsureStationList();
-  void BuildCityIdx_(const nlohmann::json& data);
+  void BuildCityIdx(const nlohmann::json& data);
   nlohmann::json HttpGet(const std::string& endpoint, const std::map<std::string, std::string>& params);
   std::string MakeCacheKey(const std::string& endpoint, const std::map<std::string, std::string>& params);
   Segment ParseSegment(const nlohmann::json& j);

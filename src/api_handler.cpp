@@ -9,7 +9,7 @@ void ApiHandler::EnsureStationList() {
   }
   try {
     nlohmann::json data = HttpGet("/v3.0/stations_list", {{"lang", "ru_RU"}, {"format", "json"}});
-    BuildCityIdx_(data);
+    BuildCityIdx(data);
     StationListLoaded_ = std::chrono::system_clock::now();
   } catch (const std::exception& ex) {
     std::cerr << "Stations list: " << ex.what() << '\n';
@@ -42,6 +42,27 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
   }
   cache_.put(key, r.text);
   return nlohmann::json::parse(r.text);
+}
+
+void ApiHandler::BuildCityIdx(const nlohmann::json& data) {
+  std::unordered_map<std::string, std::string> idx;
+  for (auto& country : data.value("countries", nlohmann::json::array())) {
+    for (auto& region : data.value("region", nlohmann::json::array())) {
+      for (auto& settlement: data.value("settelements", nlohmann::json::array())) {
+        std::string title = settlement.value("title", "");
+        if (title.empty()) {
+          continue;
+        }
+        auto codes = settlement.value("codes", nlohmann::json::object());
+        std::string code = codes.value("yandex_code", "");
+        if (code.empty()) {
+          continue;
+        }
+        idx[title] = code;
+      }
+    }
+  }
+  CityIdx_ = std::move(idx);
 }
 
 Segment ApiHandler::ParseSegment(const nlohmann::json& j) {
