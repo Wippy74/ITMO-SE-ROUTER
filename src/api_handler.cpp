@@ -65,26 +65,6 @@ void ApiHandler::BuildCityIdx(const nlohmann::json& data) {
   CityIdx_ = std::move(idx);
 }
 
-Segment ApiHandler::ParseSegment(const nlohmann::json& j) {
-  Segment seg;
-  seg.from_title = j.value("from", nlohmann::json::object().value("title", ""));
-  auto t = j.value("thread", nlohmann::json::object());
-  seg.thread_title = t.value("title", "");
-  seg.thread_number = t.value("number", "");
-  auto c = j.value("carrier", nlohmann::json::object());
-  seg.carrier = c.value("title", "");
-  seg.transport_type = t.value("transport_type", "");
-  seg.to_title = j.value("to", nlohmann::json::object().value("title", ""));
-  if (j.contains("departure") && j["departure"].is_string()) {
-    seg.departure = j["departure"].get<std::string>();
-  }
-  if (j.contains("arrival") && j["arrival"].is_string()) {
-    seg.arrival = j["arrival"].get<std::string>();
-  }
-  seg.duration = j.value("duration", 0.0);
-  return seg;
-}
-
 nlohmann::json ApiHandler::Search(const std::string& from, const std::string& to, const std::string& date, bool transfers) {
   std::map<std::string, std::string> params = {{"from", from}, {"to", to}, {"date", date}, {"lang", "ru_RU"} , {"format", "json"} , {"limit", "100"}, {"transfers", transfers ? "true" : "false"}};
   try {

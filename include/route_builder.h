@@ -4,14 +4,22 @@
 #include <set>
 #include <vector>
 
-struct Route {
-  std::string departure;
-  std::string arrival;
+struct Segment {
+  std::string thread_title;
+  std::string thread_number;
+  std::string transport_type;
+  std::string carrier;
   std::string from_title;
   std::string to_title;
-  std::vector<Segment> segs;
-  std::vector<double> wait_seconds;
-  double total_duration = 0;
+  std::string departure;
+  std::string arrival;
+  std::string stops;
+  std::string departure_terminal;
+  std::string arrival_terminal;
+  std::string departure_platform;
+  std::string arrival_platform;
+  std::string start_date;
+  double duration = 0;
   bool has_transfers = false;
 };
 
@@ -23,8 +31,7 @@ private:
 
   std::vector<Segment> FindRoutes(const std::string& from, const std::string& to, const std::string& date, int MaxTransfers);
 
-  Segment ParseSegment(const nlohmann::json& seg);
-  Route ParseDirect(const nlohmann::json& seg);
-  Route ParseTransfers(const nlohmann::json& seg);
+  std::vector<Segment> ParseRoutes(const nlohmann::json& data, int max_transfers);
+  Segment ParseSegment(const nlohmann::json& j);
   static constexpr int kMaxRes = 100;
 };

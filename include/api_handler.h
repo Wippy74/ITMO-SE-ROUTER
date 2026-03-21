@@ -8,18 +8,6 @@
 #include <string>
 #include <chrono>
 
-struct Segment {
-  std::string from_title;
-  std::string thread_title;
-  std::string thread_number;
-  std::string carrier;
-  std::string transport_type;
-  std::string to_title;
-  std::string departure;
-  std::string arrival;
-  double duration;
-};
-
 class ApiHandler {
 public:
   ApiHandler(const std::string& ApiKey, Cache& cache);
@@ -39,5 +27,4 @@ private:
   void BuildCityIdx(const nlohmann::json& data);
   nlohmann::json HttpGet(const std::string& endpoint, const std::map<std::string, std::string>& params);
   std::string MakeCacheKey(const std::string& endpoint, const std::map<std::string, std::string>& params);
-  Segment ParseSegment(const nlohmann::json& j);
 };
