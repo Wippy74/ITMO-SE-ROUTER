@@ -38,5 +38,5 @@ private:
   Segment ParseSegment(const nlohmann::json& j);
 
   std::string RusTransport(const std::string& t);
-  std::string DurToTime(const std::string& t);
+  std::string DurToTime(double dur);
 };
