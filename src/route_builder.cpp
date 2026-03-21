@@ -36,3 +36,19 @@ Segment RouteBuilder::ParseSegment(const nlohmann::json& j) {
   r.start_date = j.value("start_date", "");
   return r;
 }
+
+std::vector<Segment> RouteBuilder::ParseRoutes(const nlohmann::json& data, int MaxTransfers) {
+  std::vector<Segment> segs;
+  for (auto& s : data.value("segments", nlohmann::json::array())) {
+    try {
+      Segment seg = ParseSegment(s);
+      if (MaxTransfers == 0 && seg.has_transfers) {
+        continue;
+      }
+      segs.push_back(std::move(seg));
+    } catch (const std::exception& ex) {
+      std::cerr << "Failure during route parsing: " << ex.what() << '\n';
+    }
+  }
+  return segs;
+}
