@@ -31,6 +31,8 @@ private:
 
   std::vector<Segment> FindRoutes(const std::string& from, const std::string& to, const std::string& date, int MaxTransfers);
 
+  void PrintRoutes(const std::vector<Segment>& seg);
+
   std::vector<Segment> ParseRoutes(const nlohmann::json& data, int max_transfers);
   Segment ParseSegment(const nlohmann::json& j);
   static constexpr int kMaxRes = 100;
