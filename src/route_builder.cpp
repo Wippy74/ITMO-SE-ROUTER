@@ -100,3 +100,38 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
     }
   }
 }
+
+std::string RouteBuilder::DurToTime(double dur) {
+  if (dur <= 0) {
+    return "0";
+  }
+  int min = (static_cast<int>(dur) / 60) % 60;
+  int hours = min / 60;
+  std::ostringstream oss;
+  if (hours > 0) {
+    oss << hours << "ч.";
+  }
+  oss << min << "мин.";
+  return oss.str();
+}
+
+std::string RouteBuilder::RusTransport(const std::string& t) {
+  if (t == "plane") {
+    return "Самолет";
+  }
+  if (t == "train") {
+    return "Поезд";
+  }
+  if (t == "suburban") {
+    return "Электричка";
+  }
+  if (t == "bus") {
+    return "Автобус";
+  }
+  if (t == "water") {
+    return "Водный транспорт";
+  }
+  if (t == "helicopter") {
+    return "Вертолет";
+  }
+}
