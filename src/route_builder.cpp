@@ -62,3 +62,41 @@ std::vector<Segment> RouteBuilder::FindRoutes(const std::string& from, const std
   return segs;
 }
 
+void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
+  std::cout << "Найденно маршрутов: " << segs.size() << '\n';
+  int count = 1;
+  for (auto& s : segs) {
+    std::cout << '\n' << count++ << ". " << RusTransport(s.transport_type) << s.thread_number;
+    if (!s.carrier.empty()) {
+      std::cout << s.carrier;
+    }
+    if (s.has_transfers) {
+      std::cout << " с пересадками ";
+    }
+    std::cout << '\n';
+    std::cout << s.thread_title << '\n';
+    std::cout << s.from_title << '\n';
+    if (!s.departure_platform.empty()) {
+      std::cout << ", терминал" << s.departure_platform;
+    }
+    if (!s.departure_terminal.empty()) {
+      std::cout << ", платформа" << s.departure_terminal;
+    }
+    std::cout << '\n';
+    std::cout << s.to_title << '\n';
+    if (!s.arrival_platform.empty()) {
+      std::cout << ", терминал" << s.arrival_platform;
+    }
+    if (!s.arrival_terminal.empty()) {
+      std::cout << ", платформа" << s.arrival_terminal;
+    }
+    std::cout << '\n';
+    std::cout << "Отправление: " << s.departure.substr(11, 5);
+    std::cout << "Прибытие: " << s.arrival.substr(11, 5);
+    std::cout << s.arrival.substr(0,10) << '\n';
+    std::cout << DurToTime(s.duration) << "в пути" << '\n';
+    if (!s.stops.empty()) {
+      std::cout << "Остановки: " << s.stops << '\n';
+    }
+  }
+}
