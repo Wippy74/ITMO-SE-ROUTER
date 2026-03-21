@@ -52,3 +52,13 @@ std::vector<Segment> RouteBuilder::ParseRoutes(const nlohmann::json& data, int M
   }
   return segs;
 }
+
+std::vector<Segment> RouteBuilder::FindRoutes(const std::string& from, const std::string& to, const std::string& date, int MaxTransfers) {
+  nlohmann::json j = api_.Search(from, to, date, (MaxTransfers > 0) ? true : false);
+  std::vector<Segment> segs = ParseRoutes(j, MaxTransfers);
+  if (static_cast<int>(segs.size() > kMaxRes)) {
+    segs.resize(kMaxRes);
+  }
+  return segs;
+}
+
