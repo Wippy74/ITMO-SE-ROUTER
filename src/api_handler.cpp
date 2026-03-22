@@ -33,14 +33,11 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
     return nlohmann::json::parse(*in_cache);
   }
   std::string total_url = std::string(BaseURL) + endpoint;
-  cpr::Parameters CprParams;
-  CprParams.Add({"apikey", api_key_});
-  for (const auto& [Key, Value] : params) {
-    CprParams.Add({Key, Value});
-  }
-  cpr::Response r = cpr::Get(cpr::Url{total_url}, CprParams, cpr::Timeout{30000});
+  std::map<std::string, std::string> all_params = params;
+  all_params["apikey"] = api_key_;
+  Response r = http_client_->Get(total_url, all_params, 30000);
   if (r.status_code == 0) {
-    throw ApiErr("Нет такой сети: " + r.error.message);
+    throw ApiErr("Нет такой сети: " + r.error_message);
   }
   if (r.status_code == 400) {
     throw ApiErr("Bad request");
