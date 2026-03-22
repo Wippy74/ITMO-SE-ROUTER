@@ -24,6 +24,25 @@ bool ParseCLI(const std::string& l, std::string& from, std::string& to, std::str
   return true;
 }
 
+bool ProcessQuery(const std::string& FromCity, const std::string& ToCity, const std::string& date, int MaxTransfers, RouteBuilder& router) {
+  if (MaxTransfers < 0) {
+    std::cerr << "Максимальное количество пересадок должно быть больше 0 \n";
+    return false;
+  }
+  if (FromCity == ToCity) {
+    std::cerr << "Города отправления и прибытия должны отличаться \n";
+    return false;
+  }
+  try {
+    router.MakeAndPrint(FromCity, ToCity, date, MaxTransfers);
+    return true;
+  } catch (const ApiErr& ApiEx) {
+    std::cerr << "Ошибка API: " << ApiEx.what() << '\n';
+  } catch (const std::exception& ex) {
+    std::cerr << "Ошибка: " << ex.what() << '\n';
+  }
+  return false;
+}
 
 int main() {
 
