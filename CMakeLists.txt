@@ -28,7 +28,11 @@ add_executable(labwork7
                ./src/cache.cpp
                ./src/api_handler.cpp
                ./src/route_builder.cpp
+               ./src/http_interface.cpp
 )
+
+enable_testing()
+add_subdirectory(tests)
 
 target_link_libraries(labwork7 PRIVATE nlohmann_json::nlohmann_json cpr::cpr)
 
