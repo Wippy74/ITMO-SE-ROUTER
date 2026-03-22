@@ -1,4 +1,4 @@
-#include <../include/route_builder.h>
+#include "../include/route_builder.h"
 
 RouteBuilder::RouteBuilder(ApiHandler& api) : api_(api) {}
 
@@ -66,7 +66,7 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
   std::cout << "Найденно маршрутов: " << segs.size() << '\n';
   int count = 1;
   for (auto& s : segs) {
-    std::cout << '\n' << count++ << ". " << RusTransport(s.transport_type) << s.thread_number;
+    std::cout << '\n' << count++ << "." << RusTransport(s.transport_type) << " " << s.thread_number << " ";
     if (!s.carrier.empty()) {
       std::cout << s.carrier;
     }
@@ -74,26 +74,25 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
       std::cout << " с пересадками ";
     }
     std::cout << '\n';
-    std::cout << s.thread_title << '\n';
-    std::cout << s.from_title << '\n';
+    std::cout << "Маршрут " << s.thread_title << '\n';
+    std::cout << s.from_title;
     if (!s.departure_platform.empty()) {
       std::cout << ", терминал" << s.departure_platform;
     }
     if (!s.departure_terminal.empty()) {
       std::cout << ", платформа" << s.departure_terminal;
     }
-    std::cout << '\n';
-    std::cout << s.to_title << '\n';
+    std::cout << "  —  ";
+    std::cout << s.to_title;
     if (!s.arrival_platform.empty()) {
-      std::cout << ", терминал" << s.arrival_platform;
+      std::cout << ", терминал " << s.arrival_platform;
     }
     if (!s.arrival_terminal.empty()) {
-      std::cout << ", платформа" << s.arrival_terminal;
+      std::cout << ", платформа " << s.arrival_terminal;
     }
     std::cout << '\n';
-    std::cout << "Отправление: " << s.departure.substr(11, 5);
-    std::cout << "Прибытие: " << s.arrival.substr(11, 5);
-    std::cout << s.arrival.substr(0,10) << '\n';
+    std::cout << "Отправление: " << s.departure.substr(11, 5) << " " << s.departure.substr(0,10) << '\n';
+    std::cout << "Прибытие: " << s.arrival.substr(11, 5) << " " << s.arrival.substr(0,10) << '\n';
     std::cout << DurToTime(s.duration) << "в пути" << '\n';
     if (!s.stops.empty()) {
       std::cout << "Остановки: " << s.stops << '\n';
@@ -119,13 +118,14 @@ std::string RouteBuilder::DurToTime(double dur) {
   if (dur <= 0) {
     return "0";
   }
-  int min = (static_cast<int>(dur) / 60) % 60;
+  int min = (static_cast<int>(dur) / 60);
   int hours = min / 60;
+  int min_module = min % 60;
   std::ostringstream oss;
   if (hours > 0) {
-    oss << hours << "ч.";
+    oss << hours << "ч. ";
   }
-  oss << min << "мин.";
+  oss << min_module << "мин. ";
   return oss.str();
 }
 
@@ -148,4 +148,5 @@ std::string RouteBuilder::RusTransport(const std::string& t) {
   if (t == "helicopter") {
     return "Вертолет";
   }
+  return t;
 }
