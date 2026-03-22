@@ -2,11 +2,13 @@
 
 #include <nlohmann/json.hpp>
 #include "cache.h"
+#include "http_interface.h"
 #include <vector>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <chrono>
+#include <memory>
 
 class ApiErr : public std::runtime_error {
   using std::runtime_error::runtime_error;
@@ -15,6 +17,7 @@ class ApiErr : public std::runtime_error {
 class ApiHandler {
 public:
   ApiHandler(const std::string& ApiKey, Cache& cache);
+  ApiHandler(const std::string& ApiKey, Cache& cache, std::shared_ptr<HttpClientInterface> http_client);
 
   nlohmann::json Search(const std::string& from, const std::string& to, const std::string& date, bool transfers = false);
   std::string TakeCity(const std::string& city);
@@ -25,6 +28,7 @@ private:
   
   std::string api_key_;
   Cache& cache_;
+  std::shared_ptr<HttpClientInterface> http_client_;
   
   std::unordered_map<std::string, std::string> city_idx_;
 
