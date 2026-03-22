@@ -2,13 +2,15 @@
 
 #include <cpr/cpr.h>
 
+ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache) : ApiKey_(ApiKey), cache_(cache) {};
+
 std::string ApiHandler::TakeCity(const std::string& city) {
   EnsureStationList();
   auto it = CityIdx_.find(city);
   if (it != CityIdx_.end()) {
     return it->second;
   }
-  throw ApiErr("Город: " + city + "не найден");
+  throw ApiErr("Город " + city + " не найден");
 }
 
 void ApiHandler::EnsureStationList() {
@@ -17,18 +19,18 @@ void ApiHandler::EnsureStationList() {
     return;
   }
   try {
-    nlohmann::json data = HttpGet("/v3.0/stations_list", {{"lang", "ru_RU"}, {"format", "json"}});
+    nlohmann::json data = HttpGet("/stations_list", {{"lang", "ru_RU"}, {"format", "json"}});
     BuildCityIdx(data);
     StationListLoaded_ = std::chrono::system_clock::now();
   } catch (const std::exception& ex) {
-    std::cerr << "Stations list: " << ex.what() << '\n';
+    std::cerr << "Stations list error: " << ex.what() << '\n';
   }
 }
 
 nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<std::string, std::string>& params) {
   std::string key = MakeCacheKey(endpoint, params);
   if (auto in_cache = cache_.get(key)) {
-    nlohmann::json::parse(*in_cache);
+    return nlohmann::json::parse(*in_cache);
   }
   std::string total_url = std::string(BaseURL) + endpoint;
   cpr::Parameters CprParams;
@@ -56,8 +58,8 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
 void ApiHandler::BuildCityIdx(const nlohmann::json& data) {
   std::unordered_map<std::string, std::string> idx;
   for (auto& country : data.value("countries", nlohmann::json::array())) {
-    for (auto& region : data.value("region", nlohmann::json::array())) {
-      for (auto& settlement: data.value("settelements", nlohmann::json::array())) {
+    for (auto& region : country.value("regions", nlohmann::json::array())) {
+      for (auto& settlement: region.value("settlements", nlohmann::json::array())) {
         std::string title = settlement.value("title", "");
         if (title.empty()) {
           continue;
@@ -77,14 +79,14 @@ void ApiHandler::BuildCityIdx(const nlohmann::json& data) {
 nlohmann::json ApiHandler::Search(const std::string& from, const std::string& to, const std::string& date, bool transfers) {
   std::map<std::string, std::string> params = {{"from", from}, {"to", to}, {"date", date}, {"lang", "ru_RU"} , {"format", "json"} , {"limit", "100"}, {"transfers", transfers ? "true" : "false"}};
   try {
-    return HttpGet("/v3.0/search", params);
+    return HttpGet("/search", params);
   } catch (const std::exception& ex) {
     std::cerr << "Ошибка при поиске рейса из " << from << " в " << to << ": " << ex.what() << '\n';
     return nlohmann::json::object();
   }
 }
 
-std::string MakeCacheKey(const std::string& endpoint, const std::map<std::string, std::string>& params) {
+std::string ApiHandler::MakeCacheKey(const std::string& endpoint, const std::map<std::string, std::string>& params) {
   std::ostringstream oss;
   oss << endpoint;
   for (auto& [key, value] : params) {
