@@ -2,7 +2,8 @@
 
 #include <cpr/cpr.h>
 
-ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache) : api_key_(ApiKey), cache_(cache) {};
+ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache) : api_key_(ApiKey), cache_(cache), http_client_(std::make_shared<HttpClient>()) {};
+ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache, std::shared_ptr<HttpClientInterface> http_client) : api_key_(ApiKey), cache_(cache), http_client_(std::move(http_client)) {};
 
 std::string ApiHandler::TakeCity(const std::string& city) {
   EnsureStationList();
