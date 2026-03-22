@@ -21,6 +21,9 @@ public:
 
   nlohmann::json Search(const std::string& from, const std::string& to, const std::string& date, bool transfers = false);
   std::string TakeCity(const std::string& city);
+  size_t GetCityIndexSize() const {
+    return city_idx_.size();
+  }
 private:
   static constexpr const char* BaseURL = "https://api.rasp.yandex-net.ru/v3.0";
   static constexpr std::chrono::hours StationListTTL_ = std::chrono::hours(96);
