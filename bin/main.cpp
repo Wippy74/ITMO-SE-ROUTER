@@ -28,17 +28,17 @@ bool ParseCLI(const std::string& l, std::string& from, std::string& to, std::str
   return true;
 }
 
-bool ProcessQuery(const std::string& FromCity, const std::string& ToCity, const std::string& date, int MaxTransfers, RouteBuilder& router) {
-  if (MaxTransfers < 0) {
+bool ProcessQuery(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers, RouteBuilder& router) {
+  if (max_transfers < 0) {
     std::cerr << "Максимальное количество пересадок должно быть больше 0 \n";
     return false;
   }
-  if (FromCity == ToCity) {
+  if (from_city == to_city) {
     std::cerr << "Города отправления и прибытия должны отличаться \n";
     return false;
   }
   try {
-    router.MakeAndPrint(FromCity, ToCity, date, MaxTransfers);
+    router.MakeAndPrint(from_city, to_city, date, max_transfers);
     return true;
   } catch (const ApiErr& ApiEx) {
     std::cerr << "Ошибка API: " << ApiEx.what() << '\n';
@@ -63,15 +63,15 @@ void Interactive(RouteBuilder& router, Cache& cache) {
       std::cout << "Выход\n";
       break;
     }
-    std::string FromCity;
-    std::string ToCity;
+    std::string from_city;
+    std::string to_city;
     std::string date;
-    int MaxTransfers = 0;
-    if (!ParseCLI(l, FromCity, ToCity, date, MaxTransfers)) {
+    int max_transfers = 0;
+    if (!ParseCLI(l, from_city, to_city, date, max_transfers)) {
       std::cerr << "Неверный формат ввода\n";
       continue;
     }
-    ProcessQuery(FromCity, ToCity, date, MaxTransfers, router);
+    ProcessQuery(from_city, to_city, date, max_transfers, router);
     std::cout << '\n';
   }
 }
@@ -84,29 +84,29 @@ int main(int argc, char* argv[]) {
   if (argc == 1) {
     PrintGuide(argv[0]);
   }
-  std::string ApiKey;
+  std::string api_key;
   try {
     Config c = Config::load();
-    ApiKey = c.api_key;
+    api_key = c.api_key;
   } catch (const std::exception& ex) {
     std::cerr << "Config error: " << ex.what() << '\n';
     return 1;
   }
   Cache cache("route_cache.json", 100, std::chrono::seconds(1800));
-  ApiHandler api(ApiKey, cache);
+  ApiHandler api(api_key, cache);
   RouteBuilder router(api);
   if (argc == 5) {
-    std::string FromCity = argv[1];
-    std::string ToCity = argv[2];
+    std::string from_city = argv[1];
+    std::string to_city = argv[2];
     std::string date = argv[3];
-    int MaxTransfers;
+    int max_transfers;
     try {
-      MaxTransfers = std::stoi(argv[4]);
+      max_transfers = std::stoi(argv[4]);
     } catch (...) {
       std::cerr << "Максимальное количество пересадок должно быть числом\n";
       return 1;
     }
-    ProcessQuery(FromCity, ToCity, date, MaxTransfers, router);
+    ProcessQuery(from_city, to_city, date, max_transfers, router);
     return 0;
   }
   Interactive(router, cache);

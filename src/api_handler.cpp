@@ -2,12 +2,12 @@
 
 #include <cpr/cpr.h>
 
-ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache) : ApiKey_(ApiKey), cache_(cache) {};
+ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache) : api_key_(ApiKey), cache_(cache) {};
 
 std::string ApiHandler::TakeCity(const std::string& city) {
   EnsureStationList();
-  auto it = CityIdx_.find(city);
-  if (it != CityIdx_.end()) {
+  auto it = city_idx_.find(city);
+  if (it != city_idx_.end()) {
     return it->second;
   }
   throw ApiErr("Город " + city + " не найден");
@@ -15,7 +15,7 @@ std::string ApiHandler::TakeCity(const std::string& city) {
 
 void ApiHandler::EnsureStationList() {
   auto now = std::chrono::system_clock::now();
-  if (!CityIdx_.empty() && ((now - StationListLoaded_) < StationListTTL_)) {
+  if (!city_idx_.empty() && ((now - StationListLoaded_) < StationListTTL_)) {
     return;
   }
   try {
@@ -34,7 +34,7 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
   }
   std::string total_url = std::string(BaseURL) + endpoint;
   cpr::Parameters CprParams;
-  CprParams.Add({"apikey", ApiKey_});
+  CprParams.Add({"apikey", api_key_});
   for (const auto& [Key, Value] : params) {
     CprParams.Add({Key, Value});
   }
@@ -73,7 +73,7 @@ void ApiHandler::BuildCityIdx(const nlohmann::json& data) {
       }
     }
   }
-  CityIdx_ = std::move(idx);
+  city_idx_ = std::move(idx);
 }
 
 nlohmann::json ApiHandler::Search(const std::string& from, const std::string& to, const std::string& date, bool transfers) {

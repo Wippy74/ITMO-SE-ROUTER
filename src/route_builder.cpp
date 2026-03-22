@@ -195,17 +195,17 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
   }
 }
 
-void RouteBuilder::MakeAndPrint(const std::string& FromCity, const std::string& ToCity, const std::string& date, int MaxTransfers) {
-  std::string FromCode = api_.TakeCity(FromCity);
-  std::string ToCode = api_.TakeCity(ToCity);
-  std::cout << FromCity << " ----> " << ToCity << "   " << date;
-  if (MaxTransfers > 0) {
-    std::cout << "   с количеством пересадок не более чем " << MaxTransfers;
+void RouteBuilder::MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers) {
+  std::string FromCode = api_.TakeCity(from_city);
+  std::string ToCode = api_.TakeCity(to_city);
+  std::cout << from_city << " ----> " << to_city << "   " << date;
+  if (max_transfers > 0) {
+    std::cout << "   с количеством пересадок не более чем " << max_transfers;
   } else {
     std::cout << "   без пересадок";
   }
   std::cout << '\n';
-  auto route = FindRoutes(FromCode, ToCode, date, MaxTransfers);
+  auto route = FindRoutes(FromCode, ToCode, date, max_transfers);
   PrintRoutes(route);
 }
 

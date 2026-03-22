@@ -23,10 +23,10 @@ private:
   static constexpr std::chrono::hours StationListTTL_ = std::chrono::hours(96);
   std::chrono::system_clock::time_point StationListLoaded_{};
   
-  std::string ApiKey_;
+  std::string api_key_;
   Cache& cache_;
   
-  std::unordered_map<std::string, std::string> CityIdx_;
+  std::unordered_map<std::string, std::string> city_idx_;
 
   void EnsureStationList();
   void BuildCityIdx(const nlohmann::json& data);

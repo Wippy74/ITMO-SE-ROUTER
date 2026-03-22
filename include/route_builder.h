@@ -21,17 +21,18 @@ struct Segment {
   std::string start_date;
   double duration = 0;
   bool has_transfers = false;
+  std::vector<Segment> transfer_segments;
 };
 
 class RouteBuilder {
 public:
   explicit RouteBuilder(ApiHandler& api);
-  void MakeAndPrint(const std::string& FromCity, const std::string& ToCity, const std::string& date, int MaxTransfers);
+  void MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers);
 private:
   static constexpr int kMaxRes = 100;
   ApiHandler& api_;
 
-  std::vector<Segment> FindRoutes(const std::string& FromCode, const std::string& ToCode, const std::string& date, int MaxTransfers);
+  std::vector<Segment> FindRoutes(const std::string& from_code, const std::string& to_code, const std::string& date, int max_transfers);
 
   void PrintRoutes(const std::vector<Segment>& segs);
 
