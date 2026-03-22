@@ -26,7 +26,7 @@ std::optional<std::string> Cache::get(const std::string& key) {
       return it->second.val;
     }
   }
-  auto it = old_.find(key);
+  it = old_.find(key);
   if (it != old_.end()) {
     if (std::chrono::system_clock::now() - it->second.created > TTL_) {
       old_.erase(it);
@@ -52,9 +52,9 @@ void Cache::put(const std::string& key, const std::string& value) {
     return;
   }
   if (fresh_.size() >= gen_limit_) {
-    UpdateGen;
+    UpdateGen();
   }
-  fresh_.emplace(key, Entry{key, std::chrono::system_clock::now()});
+  fresh_.emplace(key, Entry{value, std::chrono::system_clock::now()});
 }
 
 void Cache::clear() {
@@ -112,6 +112,9 @@ std::unordered_map<std::string, Cache::Entry> Cache::Deserialize(const nlohmann:
 }
 
 void Cache::LoadFromFile() {
+  if (!std::filesystem::exists(filepath_)) {
+    return;
+  }
   try {
     std::ifstream in(filepath_);
     if (!in) {
@@ -122,7 +125,7 @@ void Cache::LoadFromFile() {
     fresh_ = Deserialize(root.value("fresh", nlohmann::json::object()), TTL_);
     old_ = Deserialize(root.value("old", nlohmann::json::object()), TTL_);
     if (fresh_.size() > gen_limit_) {
-      UpdateGen;
+      UpdateGen();
     }
   } catch (const std::exception& ex) {
     std::cerr << "Failed to read cache: " << ex.what() << '\n';
