@@ -27,14 +27,14 @@ struct Segment {
 class RouteBuilder {
 public:
   explicit RouteBuilder(ApiHandler& api);
-  void MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers);
+  void MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers, int limit);
 private:
   static constexpr int kMaxRes = 100;
   ApiHandler& api_;
 
   std::vector<Segment> FindRoutes(const std::string& from_code, const std::string& to_code, const std::string& date, int max_transfers);
 
-  void PrintRoutes(const std::vector<Segment>& segs);
+  void PrintRoutes(const std::vector<Segment>& segs, int limit);
 
   std::vector<Segment> ParseRoutes(const nlohmann::json& data, int max_transfers);
   Segment ParseSegment(const nlohmann::json& j);

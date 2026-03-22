@@ -110,10 +110,16 @@ std::vector<Segment> RouteBuilder::FindRoutes(const std::string& from_code, cons
   return segs;
 }
 
-void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
-  std::cout << "Найденно маршрутов: " << segs.size() << '\n';
+void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs, int limit) {
+  int to_print = (limit > 0 && limit < segs.size()) ? limit : segs.size();
+  std::cout << "Найденно маршрутов: " << segs.size();
+  if (to_print < segs.size()) {
+    std::cout << " (показано первых " << to_print << ")";
+  }
+  std::cout << '\n';
   int count = 1;
-  for (auto& s : segs) {
+  for (int i = 0; i < to_print; ++i) {
+    auto& s = segs[i];
     std::cout << '\n' << count++ << ". ";
     if (s.has_transfers && !s.transfer_segments.empty()) {
       std::cout << "С количеством пересадок: " << s.transfer_segments.size() << '\n';
@@ -195,7 +201,7 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
   }
 }
 
-void RouteBuilder::MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers) {
+void RouteBuilder::MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers, int limit) {
   std::string FromCode = api_.TakeCity(from_city);
   std::string ToCode = api_.TakeCity(to_city);
   std::cout << from_city << " ----> " << to_city << "   " << date;
@@ -206,7 +212,7 @@ void RouteBuilder::MakeAndPrint(const std::string& from_city, const std::string&
   }
   std::cout << '\n';
   auto route = FindRoutes(FromCode, ToCode, date, max_transfers);
-  PrintRoutes(route);
+  PrintRoutes(route, limit);
 }
 
 std::string RouteBuilder::DurToTime(double dur) {
