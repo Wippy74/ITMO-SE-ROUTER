@@ -8,6 +8,10 @@
 #include <string>
 #include <chrono>
 
+class ApiErr : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
 class ApiHandler {
 public:
   ApiHandler(const std::string& ApiKey, Cache& cache);

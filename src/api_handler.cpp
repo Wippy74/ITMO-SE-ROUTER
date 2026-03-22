@@ -8,7 +8,7 @@ std::string ApiHandler::TakeCity(const std::string& city) {
   if (it != CityIdx_.end()) {
     return it->second;
   }
-  throw std::runtime_error("Город: " + city + "не найден");
+  throw ApiErr("Город: " + city + "не найден");
 }
 
 void ApiHandler::EnsureStationList() {
@@ -38,16 +38,16 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
   }
   cpr::Response r = cpr::Get(cpr::Url{total_url}, CprParams, cpr::Timeout{30000});
   if (r.status_code == 0) {
-    throw std::runtime_error("Нет такой сети: " + r.error.message);
+    throw ApiErr("Нет такой сети: " + r.error.message);
   }
   if (r.status_code == 400) {
-    throw std::runtime_error("Bad request");
+    throw ApiErr("Bad request");
   }
   if (r.status_code == 404) {
-    throw std::runtime_error("Not Found");
+    throw ApiErr("Not Found");
   }
   if (r.status_code != 200) {
-    throw std::runtime_error(std::to_string(r.status_code));
+    throw ApiErr(std::to_string(r.status_code));
   }
   cache_.put(key, r.text);
   return nlohmann::json::parse(r.text);
