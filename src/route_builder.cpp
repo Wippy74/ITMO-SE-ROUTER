@@ -53,8 +53,8 @@ std::vector<Segment> RouteBuilder::ParseRoutes(const nlohmann::json& data, int M
   return segs;
 }
 
-std::vector<Segment> RouteBuilder::FindRoutes(const std::string& from, const std::string& to, const std::string& date, int MaxTransfers) {
-  nlohmann::json j = api_.Search(from, to, date, (MaxTransfers > 0) ? true : false);
+std::vector<Segment> RouteBuilder::FindRoutes(const std::string& FromCode, const std::string& ToCode, const std::string& date, int MaxTransfers) {
+  nlohmann::json j = api_.Search(FromCode, ToCode, date, (MaxTransfers > 0) ? true : false);
   std::vector<Segment> segs = ParseRoutes(j, MaxTransfers);
   if (static_cast<int>(segs.size() > kMaxRes)) {
     segs.resize(kMaxRes);
@@ -99,6 +99,20 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs) {
       std::cout << "Остановки: " << s.stops << '\n';
     }
   }
+}
+
+void RouteBuilder::MakeAndPrint(const std::string& FromCity, const std::string& ToCity, const std::string& date, int MaxTransfers) {
+  std::string FromCode = api_.TakeCity(FromCity);
+  std::string ToCode = api_.TakeCity(ToCity);
+  std::cout << FromCity << " ----> " << ToCity << "   " << date;
+  if (MaxTransfers > 0) {
+    std::cout << "   с количеством пересадок не более чем " << MaxTransfers;
+  } else {
+    std::cout << "   без пересадок";
+  }
+  std::cout << '\n';
+  auto route = FindRoutes(FromCode, ToCode, date, MaxTransfers);
+  PrintRoutes(route);
 }
 
 std::string RouteBuilder::DurToTime(double dur) {

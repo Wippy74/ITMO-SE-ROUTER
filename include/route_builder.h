@@ -30,7 +30,9 @@ private:
   static constexpr int kMaxRes = 100;
   ApiHandler& api_;
 
-  std::vector<Segment> FindRoutes(const std::string& from, const std::string& to, const std::string& date, int MaxTransfers);
+  void MakeAndPrint(const std::string& FromCity, const std::string& ToCity, const std::string& date, int MaxTransfers);
+
+  std::vector<Segment> FindRoutes(const std::string& FromCode, const std::string& ToCode, const std::string& date, int MaxTransfers);
 
   void PrintRoutes(const std::vector<Segment>& segs);
 
