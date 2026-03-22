@@ -3,11 +3,15 @@
 #include "../include/route_builder.h"
 #include "../include/config.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 void PrintGuide(const char* p) {
-  std::cout << "Поиск маршрутов между городами с помощью API Яндекс Расписаний" << '\n\n';
+  std::cout << "Поиск маршрутов между городами с помощью API Яндекс Расписаний \n\n";
   std::cout << "Режимы работы: \n\n";
   std::cout << "1. Одиночный запрос: \n" << p << " <откуда> <куда> <дата> <максимальное количество пересадок> \n\n";
-  std::cout << "2. Интерактивный режим: \n" << p << "(даллее вводить запросы)\n" << "Выход из интерактивного режима осуществляется командой quit";
+  std::cout << "2. Интерактивный режим: \n" << p << " (далее вводить запросы)\n" << "Выход из интерактивного режима осуществляется командой quit \n";
 }
 
 bool ParseCLI(const std::string& l, std::string& from, std::string& to, std::string& date, int& transfers) {
@@ -72,6 +76,39 @@ void Interactive(RouteBuilder& router, Cache& cache) {
   }
 }
 
-int main() {
-
+int main(int argc, char* argv[]) {
+#ifdef _WIN32
+  SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
+#endif
+  if (argc == 1) {
+    PrintGuide(argv[0]);
+  }
+  std::string ApiKey;
+  try {
+    Config c = Config::load();
+    ApiKey = c.api_key;
+  } catch (const std::exception& ex) {
+    std::cerr << "Config error: " << ex.what() << '\n';
+    return 1;
+  }
+  Cache cache("route_cache.json", 100, std::chrono::seconds(1800));
+  ApiHandler api(ApiKey, cache);
+  RouteBuilder router(api);
+  if (argc == 5) {
+    std::string FromCity = argv[1];
+    std::string ToCity = argv[2];
+    std::string date = argv[3];
+    int MaxTransfers;
+    try {
+      MaxTransfers = std::stoi(argv[4]);
+    } catch (...) {
+      std::cerr << "Максимальное количество пересадок должно быть числом\n";
+      return 1;
+    }
+    ProcessQuery(FromCity, ToCity, date, MaxTransfers, router);
+    return 0;
+  }
+  Interactive(router, cache);
+  return 0;
 }
