@@ -44,6 +44,34 @@ bool ProcessQuery(const std::string& FromCity, const std::string& ToCity, const 
   return false;
 }
 
+void Interactive(RouteBuilder& router, Cache& cache) {
+  std::string l;
+  while (true) {
+    std::cout << "Введите запрос: ";
+    std::cout.flush();
+    if (!std::getline(std::cin, l)) {
+      break;
+    }
+    if (l.empty()) {
+      continue;
+    }
+    if (l == "quit") {
+      std::cout << "Выход\n";
+      break;
+    }
+    std::string FromCity;
+    std::string ToCity;
+    std::string date;
+    int MaxTransfers = 0;
+    if (!ParseCLI(l, FromCity, ToCity, date, MaxTransfers)) {
+      std::cerr << "Неверный формат ввода\n";
+      continue;
+    }
+    ProcessQuery(FromCity, ToCity, date, MaxTransfers, router);
+    std::cout << '\n';
+  }
+}
+
 int main() {
 
 }
