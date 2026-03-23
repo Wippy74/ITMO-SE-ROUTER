@@ -112,7 +112,7 @@ std::vector<Segment> RouteBuilder::FindRoutes(const std::string& from_code, cons
 
 void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs, int limit) {
   int to_print = (limit > 0 && limit < segs.size()) ? limit : segs.size();
-  std::cout << "Найденно маршрутов: " << segs.size();
+  std::cout << "Найдено маршрутов: " << segs.size();
   if (to_print < segs.size()) {
     std::cout << " (показано первых " << to_print << ")";
   }
