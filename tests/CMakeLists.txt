@@ -38,8 +38,16 @@ target_link_libraries(
     GTest::gmock
 )
 
-add_test(NAME CacheTests COMMAND test_cache)
-add_test(NAME ApiHandlerTests COMMAND test_api_handler)
+add_executable(test_router test_router.cpp)
+target_link_libraries(
+    test_router
+    PRIVATE
+    labwork7_lib
+    GTest::gtest
+    GTest::gtest_main
+    GTest::gmock
+)
 
 gtest_discover_tests(test_cache)
 gtest_discover_tests(test_api_handler)
+gtest_discover_tests(test_router)
