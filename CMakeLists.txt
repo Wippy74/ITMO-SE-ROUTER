@@ -23,17 +23,20 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(json cpr)
 
-add_executable(labwork7
-               ./bin/main.cpp
-               ./src/cache.cpp
-               ./src/api_handler.cpp
-               ./src/route_builder.cpp
-               ./src/http_interface.cpp
+add_library(labwork7_lib STATIC
+    src/cache.cpp
+    src/api_handler.cpp
+    src/route_builder.cpp
+    src/http_interface.cpp
 )
+
+target_include_directories(labwork7_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(labwork7_lib PUBLIC nlohmann_json::nlohmann_json cpr::cpr)
+
+add_executable(labwork7 bin/main.cpp)
+target_link_libraries(labwork7 PRIVATE labwork7_lib)
 
 enable_testing()
 add_subdirectory(tests)
-
-target_link_libraries(labwork7 PRIVATE nlohmann_json::nlohmann_json cpr::cpr)
 
 include(tests/coverage.cmake)
