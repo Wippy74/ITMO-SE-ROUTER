@@ -2,6 +2,11 @@
 #include <fstream>
 #include <filesystem>
 #include <exception>
+#include <chrono>
+#include <string>
+#include <iostream>
+#include <optional>
+#include <unordered_map>
 
 Cache::Cache(const std::string& filepath, size_t limit, std::chrono::seconds TTL): filepath_(filepath), gen_limit_(limit), TTL_(TTL) {
   fresh_.reserve(limit);

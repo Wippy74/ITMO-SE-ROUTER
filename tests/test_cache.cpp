@@ -2,6 +2,7 @@
 #include "../include/cache.h"
 #include <filesystem>
 #include <thread>
+#include <string>
 
 class CacheTest : public ::testing::Test {
 protected:

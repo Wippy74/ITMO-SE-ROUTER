@@ -3,6 +3,8 @@
 #include "../include/api_handler.h"
 #include "http_client_mock.h"
 #include <filesystem>
+#include <memory>
+#include <chrono>
 
 using ::testing::_;
 using ::testing::Return;

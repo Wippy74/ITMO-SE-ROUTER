@@ -4,6 +4,9 @@
 #include "http_client_mock.h"
 #include <filesystem>
 #include <sstream>
+#include <string>
+#include <memory>
+#include <iostream>
 
 using ::testing::_;
 using ::testing::Return;

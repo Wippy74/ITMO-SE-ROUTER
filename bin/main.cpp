@@ -3,6 +3,11 @@
 #include "../include/route_builder.h"
 #include "../include/config.h"
 
+#include <iostream>
+#include <string>
+#include <exception>
+#include <chrono>
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -42,8 +47,8 @@ bool ProcessQuery(const std::string& from_city, const std::string& to_city, cons
   try {
     router.MakeAndPrint(from_city, to_city, date, max_transfers, limit);
     return true;
-  } catch (const ApiErr& ApiEx) {
-    std::cerr << "Ошибка API: " << ApiEx.what() << '\n';
+  } catch (const ApiErr& api_ex) {
+    std::cerr << "Ошибка API: " << api_ex.what() << '\n';
   } catch (const std::exception& ex) {
     std::cerr << "Ошибка: " << ex.what() << '\n';
   }

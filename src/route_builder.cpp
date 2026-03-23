@@ -1,4 +1,11 @@
 #include "../include/route_builder.h"
+#include "../include/api_handler.h"
+#include <nlohmann/json.hpp>
+#include <utility>
+#include <vector>
+#include <exception> 
+#include <iostream>
+#include <sstream>
 
 RouteBuilder::RouteBuilder(ApiHandler& api) : api_(api) {}
 
@@ -127,9 +134,9 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs, int limit) {
       std::cout << "Отправление: " << s.departure.substr(11, 5) << " " << s.departure.substr(0,10) << '\n';
       std::cout << "Прибытие: " << s.arrival.substr(11, 5) << " " << s.arrival.substr(0,10) << '\n';
       std::cout << DurToTime(s.duration) << "в пути" << '\n';
-      int SubCount = 1;
+      int sub_count = 1;
       for (auto& sub : s.transfer_segments) {
-        std::cout << "Участок " << SubCount++ << '\n';
+        std::cout << "Участок " << sub_count++ << '\n';
         if (!sub.thread_number.empty()) {
           std::cout << "  " << sub.thread_number;
         }
@@ -202,8 +209,8 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs, int limit) {
 }
 
 void RouteBuilder::MakeAndPrint(const std::string& from_city, const std::string& to_city, const std::string& date, int max_transfers, int limit) {
-  std::string FromCode = api_.TakeCity(from_city);
-  std::string ToCode = api_.TakeCity(to_city);
+  std::string from_code = api_.TakeCity(from_city);
+  std::string to_code = api_.TakeCity(to_city);
   std::cout << from_city << " ----> " << to_city << "   " << date;
   if (max_transfers > 0) {
     std::cout << "   с количеством пересадок не более чем " << max_transfers;
@@ -211,7 +218,7 @@ void RouteBuilder::MakeAndPrint(const std::string& from_city, const std::string&
     std::cout << "   без пересадок";
   }
   std::cout << '\n';
-  auto route = FindRoutes(FromCode, ToCode, date, max_transfers);
+  auto route = FindRoutes(from_code, to_code, date, max_transfers);
   PrintRoutes(route, limit);
 }
 
@@ -219,9 +226,9 @@ std::string RouteBuilder::DurToTime(double dur) {
   if (dur <= 0) {
     return "";
   }
-  int TotalSeconds = static_cast<int>(dur);
-  int hours = (TotalSeconds / 3600);
-  int min = (TotalSeconds % 3600) / 60;
+  int total_seconds = static_cast<int>(dur);
+  int hours = (total_seconds / 3600);
+  int min = (total_seconds % 3600) / 60;
   std::ostringstream oss;
   if (hours > 0) {
     oss << hours << "ч. ";

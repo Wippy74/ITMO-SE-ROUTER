@@ -25,8 +25,8 @@ public:
     return city_idx_.size();
   }
 private:
-  static constexpr const char* BaseURL = "https://api.rasp.yandex-net.ru/v3.0";
-  static constexpr std::chrono::hours StationListTTL_ = std::chrono::hours(96);
+  static constexpr const char* base_url = "https://api.rasp.yandex-net.ru/v3.0";
+  static constexpr std::chrono::hours station_list_ttl_ = std::chrono::hours(96);
   std::chrono::system_clock::time_point StationListLoaded_{};
   
   std::string api_key_;

@@ -1,5 +1,7 @@
 #include "../include/http_interface.h"
 #include <cpr/cpr.h>
+#include <string>
+#include <map>
 
 Response HttpClient::Get(const std::string& URL, const std::map<std::string, std::string>& params, int timeout) {
   cpr::Parameters cpr_params;

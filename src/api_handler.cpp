@@ -1,6 +1,13 @@
 #include "../include/api_handler.h"
-
+#include "../include/cache.h"
 #include <cpr/cpr.h>
+#include <nlohmann/json.hpp>
+
+#include <string>
+#include <memory>
+#include <chrono>
+#include <unordered_map>
+#include <sstream>
 
 ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache) : api_key_(ApiKey), cache_(cache), http_client_(std::make_shared<HttpClient>()) {};
 ApiHandler::ApiHandler(const std::string& ApiKey, Cache& cache, std::shared_ptr<HttpClientInterface> http_client) : api_key_(ApiKey), cache_(cache), http_client_(std::move(http_client)) {};
@@ -16,7 +23,7 @@ std::string ApiHandler::TakeCity(const std::string& city) {
 
 void ApiHandler::EnsureStationList() {
   auto now = std::chrono::system_clock::now();
-  if (!city_idx_.empty() && ((now - StationListLoaded_) < StationListTTL_)) {
+  if (!city_idx_.empty() && ((now - StationListLoaded_) < station_list_ttl_)) {
     return;
   }
   try {
@@ -33,7 +40,7 @@ nlohmann::json ApiHandler::HttpGet(const std::string& endpoint, const std::map<s
   if (auto in_cache = cache_.get(key)) {
     return nlohmann::json::parse(*in_cache);
   }
-  std::string total_url = std::string(BaseURL) + endpoint;
+  std::string total_url = std::string(base_url) + endpoint;
   std::map<std::string, std::string> all_params = params;
   all_params["apikey"] = api_key_;
   Response r = http_client_->Get(total_url, all_params, 30000);
