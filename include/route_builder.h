@@ -38,6 +38,19 @@ private:
 
   std::vector<Segment> ParseRoutes(const nlohmann::json& data, int max_transfers);
   Segment ParseSegment(const nlohmann::json& j);
+  void PrintStationInfo(const std::string& station, const std::string& terminal, const std::string& platform, const std::string& indent);
+  void PrintSingleSegment(const Segment& seg, const std::string& indent);
+  void PrintDirectRoute(const Segment& seg);
+  void PrintTransferRoute(const Segment& seg);
+
+  void ParseThreadInfo(const nlohmann::json& j, Segment& seg);
+  void ParseStations(const nlohmann::json& j, Segment& seg);
+  void ParseTimes(const nlohmann::json& j, Segment& seg);
+  void ParseTerminalsAndPlatforms(const nlohmann::json& j, Segment& seg);
+  void ParseTransferDetails(const nlohmann::json& j, Segment& seg);
+
+  std::string GetJsonString(const nlohmann::json& j, const std::string& key);
+  std::string GetNestedString(const nlohmann::json& j, const std::string& key, const std::string& nested_key);
 
   std::string RusTransport(const std::string& t);
   std::string DurToTime(double dur);

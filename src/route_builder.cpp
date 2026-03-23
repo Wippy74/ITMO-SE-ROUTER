@@ -9,78 +9,93 @@
 
 RouteBuilder::RouteBuilder(ApiHandler& api) : api_(api) {}
 
-Segment RouteBuilder::ParseSegment(const nlohmann::json& j) {
-  Segment r;
+void RouteBuilder::ParseThreadInfo(const nlohmann::json& j, Segment& seg) {
   auto thr = j.value("thread", nlohmann::json::object());
-  r.thread_title = thr.value("title", "");
-  r.thread_number = thr.value("number", "");
-  r.transport_type = thr.value("transport_type", "");
-  auto car = thr.value("carrier", nlohmann::json::object());
-  r.carrier = car.value("title", "");
-  if (j.contains("from") && j["from"].is_object()) {
-    r.from_title = j["from"].value("title", "");
+  seg.thread_title = thr.value("title", "");
+  seg.thread_number = thr.value("number", "");
+  seg.transport_type = thr.value("transport_type", "");
+  auto carrier = thr.value("carrier", nlohmann::json::object());
+  seg.carrier = carrier.value("title", "");
+}
+
+void RouteBuilder::ParseStations(const nlohmann::json& j, Segment& seg) {
+  seg.from_title = GetNestedString(j, "from", "title");
+  seg.to_title = GetNestedString(j, "to", "title");
+  std::string dep_from = GetNestedString(j, "departure_from", "title");
+  std::string arr_to = GetNestedString(j, "arrival_to", "title");
+  if (!dep_from.empty()) {
+    seg.from_title = dep_from;
   }
-  if (j.contains("to") && j["to"].is_object()) {
-    r.to_title = j["to"].value("title", "");
+  if (!arr_to.empty()) {
+    seg.to_title = arr_to;
   }
-  if (j.contains("departure_from") && j["departure_from"].is_object()) {
-    std::string dep_title = j["departure_from"].value("title", "");
-    if (!dep_title.empty()) {
-      r.from_title = dep_title;
-    }
+}
+
+void RouteBuilder::ParseTimes(const nlohmann::json& j, Segment& seg) {
+  seg.departure = GetJsonString(j, "departure");
+  seg.arrival = GetJsonString(j, "arrival");
+  seg.duration = j.value("duration", 0.0);
+  seg.start_date = j.value("start_date", "");
+}
+
+void RouteBuilder::ParseTerminalsAndPlatforms(const nlohmann::json& j, Segment& seg) {
+  seg.departure_terminal = GetJsonString(j, "departure_terminal");
+  seg.arrival_terminal = GetJsonString(j, "arrival_terminal");
+  seg.departure_platform = GetJsonString(j, "departure_platform");
+  seg.arrival_platform = GetJsonString(j, "arrival_platform");
+  seg.stops = GetJsonString(j, "stops");
+}
+
+void RouteBuilder::ParseTransferDetails(const nlohmann::json& j, Segment& seg) {
+  if (!j.contains("details") || !j["details"].is_array()) {
+    return;
   }
-  if (j.contains("arrival_to") && j["arrival_to"].is_object()) {
-    std::string arr_title = j["arrival_to"].value("title", "");
-    if (!arr_title.empty()) {
-      r.to_title = arr_title;
-    }
-  }
-  if (j.contains("departure") && j["departure"].is_string()) {
-    r.departure = j["departure"].get<std::string>();
-  }
-  if (j.contains("arrival") && j["arrival"].is_string()) {
-    r.arrival = j["arrival"].get<std::string>();
-  }
-  r.duration = j.value("duration", 0.0);
-  r.has_transfers = j.contains("details") && j["details"].is_array() && !j["details"].empty();
-  if (j.contains("stops") && j["stops"].is_string()) {
-    r.stops = j["stops"].get<std::string>();
-  }
-  if (j.contains("departure_terminal") && j["departure_terminal"].is_string()) {
-    r.departure_terminal = j["departure_terminal"].get<std::string>();
-  }
-  if (j.contains("arrival_terminal") && j["arrival_terminal"].is_string()) {
-    r.arrival_terminal = j["arrival_terminal"].get<std::string>();
-  }
-  if (j.contains("departure_platform") && j["departure_platform"].is_string()) {
-    r.departure_platform = j["departure_platform"].get<std::string>();
-  }
-  if (j.contains("arrival_platform") && j["arrival_platform"].is_string()) {
-    r.arrival_platform = j["arrival_platform"].get<std::string>();
-  }
-  r.start_date = j.value("start_date", "");
-  if (r.has_transfers) {
-    double total_dur = 0;
-    for (auto& sub : j["details"]) {
-      try {
-        bool is_transfer_wait = false;
-        if (sub.contains("is_transfer") && sub["is_transfer"].is_boolean()) {
-          is_transfer_wait = sub["is_transfer"].get<bool>();
-        }
-        if (is_transfer_wait) {
+  double total_dur = 0;
+  for (const auto& sub : j["details"]) {
+    try {
+      if (sub.contains("is_transfer") && sub["is_transfer"].is_boolean()) {
+        if (sub["is_transfer"].get<bool>()) {
           continue;
         }
-        Segment sub_seg = ParseSegment(sub);
-        total_dur += sub_seg.duration;
-        r.transfer_segments.push_back(std::move(sub_seg));
-      } catch (...) {}
-    }
-    if (r.duration <= 0 && total_dur > 0) {
-      r.duration = total_dur;
+      }
+      Segment sub_seg = ParseSegment(sub);
+      total_dur += sub_seg.duration;
+      seg.transfer_segments.push_back(std::move(sub_seg));
+    } catch (...) {
     }
   }
-  return r;
+  if (seg.duration <= 0 && total_dur > 0) {
+    seg.duration = total_dur;
+  }
 }
+
+Segment RouteBuilder::ParseSegment(const nlohmann::json& j) {
+  Segment seg;
+  ParseThreadInfo(j, seg);
+  ParseStations(j, seg);
+  ParseTimes(j, seg);
+  ParseTerminalsAndPlatforms(j, seg);
+  seg.has_transfers = j.contains("details") && j["details"].is_array() && !j["details"].empty();
+  if (seg.has_transfers) {
+    ParseTransferDetails(j, seg);
+  }
+  return seg;
+}
+
+std::string RouteBuilder::GetNestedString(const nlohmann::json& j, const std::string& key, const std::string& nested_key) {
+  if (j.contains(key) && j[key].is_object()) {
+    return j[key].value(nested_key, "");
+  }
+  return "";
+}
+
+std::string RouteBuilder::GetJsonString(const nlohmann::json& j, const std::string& key) {
+  if (j.contains(key) && j[key].is_string()) {
+    return j[key].get<std::string>();
+  }
+  return "";
+}
+
 
 std::vector<Segment> RouteBuilder::ParseRoutes(const nlohmann::json& data, int max_transfers) {
   std::vector<Segment> segs;
@@ -117,6 +132,98 @@ std::vector<Segment> RouteBuilder::FindRoutes(const std::string& from_code, cons
   return segs;
 }
 
+void RouteBuilder::PrintStationInfo(const std::string& station, const std::string& terminal, const std::string& platform, const std::string& indent) {
+  std::cout << indent << station;
+  if (!platform.empty()) {
+    std::cout << ", платформа " << platform;
+  }
+  if (!terminal.empty()) {
+    std::cout << ", терминал " << terminal;
+  }
+}
+
+void RouteBuilder::PrintSingleSegment(const Segment& seg, const std::string& indent) {
+  if (!seg.thread_number.empty()) {
+    std::cout << indent << seg.thread_number;
+  }
+  if (!seg.carrier.empty()) {
+    std::cout << "  " << seg.carrier;
+  }
+  std::cout << '\n';
+  if (!seg.thread_title.empty()) {
+    std::cout << indent << "Маршрут " << seg.thread_title << '\n';
+  }
+  PrintStationInfo(seg.from_title, seg.departure_terminal, seg.departure_platform, indent);
+  std::cout << "  —  ";
+  std::cout << seg.to_title;
+  if (!seg.arrival_platform.empty()) {
+    std::cout << ", платформа " << seg.arrival_platform;
+  }
+  if (!seg.arrival_terminal.empty()) {
+    std::cout << ", терминал " << seg.arrival_terminal;
+  }
+  std::cout << '\n';
+  std::cout << "Отправление: " << seg.departure.substr(11, 5) << " " << seg.departure.substr(0,10) << '\n';
+  std::cout << "Прибытие: " << seg.arrival.substr(11, 5) << " " << seg.arrival.substr(0,10) << '\n';
+  std::string dur = DurToTime(seg.duration);
+  if (!dur.empty()) {
+    std::cout << indent << dur << "в пути\n";
+  }
+  if (!seg.stops.empty()) {
+    std::cout << indent << "Остановки: " << seg.stops << '\n';
+  }
+}
+
+void RouteBuilder::PrintDirectRoute(const Segment& seg) {
+  std::cout << RusTransport(seg.transport_type);
+  if (!seg.thread_number.empty()) {
+    std::cout << " " << seg.thread_number;
+  }
+  if (!seg.carrier.empty()) {
+    std::cout << " " << seg.carrier;
+  }
+  std::cout << '\n';
+  if (!seg.thread_title.empty()) {
+    std::cout << "Маршрут " << seg.thread_title << '\n';
+  }
+  PrintStationInfo(seg.from_title, seg.departure_terminal, seg.departure_platform, "");
+  std::cout << "  —  ";
+  std::cout << seg.to_title;
+  if (!seg.arrival_platform.empty()) {
+    std::cout << ", платформа " << seg.arrival_platform;
+  }
+  if (!seg.arrival_terminal.empty()) {
+    std::cout << ", терминал " << seg.arrival_terminal;
+  }
+  std::cout << '\n';
+  std::cout << "Отправление: " << seg.departure.substr(11, 5) << " " << seg.departure.substr(0,10) << '\n';
+  std::cout << "Прибытие: " << seg.arrival.substr(11, 5) << " " << seg.arrival.substr(0,10) << '\n';
+  std::string dur = DurToTime(seg.duration);
+  if (!dur.empty()) {
+    std::cout << dur << "в пути\n";
+  }
+  if (!seg.stops.empty()) {
+    std::cout << "Остановки: " << seg.stops << '\n';
+  }
+}
+
+void RouteBuilder::PrintTransferRoute(const Segment& seg) {
+  int num_transfers = static_cast<int>(seg.transfer_segments.size()) - 1;
+  std::cout << "С количеством пересадок: " << std::max(0, num_transfers) << '\n';
+  std::cout << "Общий маршрут: " << seg.from_title << "  --->  " << seg.to_title << '\n';
+  std::cout << "Отправление: " << seg.departure.substr(11, 5) << " " << seg.departure.substr(0,10) << '\n';
+  std::cout << "Прибытие: " << seg.arrival.substr(11, 5) << " " << seg.arrival.substr(0,10) << '\n';
+  std::string dur = DurToTime(seg.duration);
+  if (!dur.empty()) {
+    std::cout << dur << "в пути\n";
+  }
+  int sub_count = 1;
+  for (const auto& sub : seg.transfer_segments) {
+    std::cout << "Участок " << sub_count++ << '\n';
+    PrintSingleSegment(sub, "  ");
+  }
+}
+
 void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs, int limit) {
   int to_print = (limit > 0 && limit < segs.size()) ? limit : segs.size();
   std::cout << "Найдено маршрутов: " << segs.size();
@@ -126,84 +233,12 @@ void RouteBuilder::PrintRoutes(const std::vector<Segment>& segs, int limit) {
   std::cout << '\n';
   int count = 1;
   for (int i = 0; i < to_print; ++i) {
-    auto& s = segs[i];
-    std::cout << '\n' << count++ << ". ";
-    if (s.has_transfers && !s.transfer_segments.empty()) {
-      std::cout << "С количеством пересадок: " << s.transfer_segments.size() << '\n';
-      std::cout << "Общий маршрут: " << s.from_title << " ---> " << s.to_title << '\n';
-      std::cout << "Отправление: " << s.departure.substr(11, 5) << " " << s.departure.substr(0,10) << '\n';
-      std::cout << "Прибытие: " << s.arrival.substr(11, 5) << " " << s.arrival.substr(0,10) << '\n';
-      std::cout << DurToTime(s.duration) << "в пути" << '\n';
-      int sub_count = 1;
-      for (auto& sub : s.transfer_segments) {
-        std::cout << "Участок " << sub_count++ << '\n';
-        if (!sub.thread_number.empty()) {
-          std::cout << "  " << sub.thread_number;
-        }
-        if (!sub.carrier.empty()) {
-          std::cout << "  " << sub.carrier;
-        }
-        std::cout << '\n';
-        if (!sub.thread_title.empty()) {
-          std::cout << "  Маршрут " << sub.thread_title << '\n';
-        }
-        std::cout << "  " << sub.from_title;
-        if (!sub.departure_platform.empty()) {
-          std::cout << ", платформа" << sub.departure_platform;
-        }
-        if (!sub.departure_terminal.empty()) {
-          std::cout << ", терминал" << sub.departure_terminal;
-        }
-        std::cout << "  —  ";
-        std::cout << sub.to_title;
-        if (!sub.arrival_terminal.empty()) {
-          std::cout << ", терминал " << sub.arrival_terminal;
-        }
-        if (!sub.arrival_platform.empty()) {
-          std::cout << ", платформа " << sub.arrival_platform;
-        }
-        std::cout << '\n';
-        std::cout << "  Отправление: " << sub.departure.substr(11, 5) << " " << sub.departure.substr(0,10) << '\n';
-        std::cout << "  Прибытие: " << sub.arrival.substr(11, 5) << " " << sub.arrival.substr(0,10) << '\n';
-        std::cout << "  " << DurToTime(sub.duration) << "в пути" << '\n';
-        if (!s.stops.empty()) {
-          std::cout << "  Остановки: " << sub.stops << '\n';
-        }
-      }
+    const auto& seg = segs[i];
+    std::cout << '\n' << (i + 1) << ". ";
+    if (seg.has_transfers && !seg.transfer_segments.empty()) {
+      PrintTransferRoute(seg);
     } else {
-      std::cout << RusTransport(s.transport_type);
-      if (!s.thread_number.empty()) {
-        std::cout << " " << s.thread_number;
-      }
-      if (!s.carrier.empty()) {
-        std::cout << " " << s.carrier;
-      }
-      std::cout << '\n';
-      if (!s.thread_title.empty()) {
-        std::cout << "Маршрут " << s.thread_title << '\n';
-      }
-      std::cout << s.from_title;
-      if (!s.departure_platform.empty()) {
-        std::cout << ", платформа" << s.departure_platform;
-      }
-      if (!s.departure_terminal.empty()) {
-        std::cout << ", терминал" << s.departure_terminal;
-      }
-      std::cout << "  —  ";
-      std::cout << s.to_title;
-      if (!s.arrival_platform.empty()) {
-        std::cout << ", платформа" << s.arrival_platform;
-      }
-      if (!s.arrival_terminal.empty()) {
-        std::cout << ", терминал " << s.arrival_terminal;
-      }
-      std::cout << '\n';
-      std::cout << "Отправление: " << s.departure.substr(11, 5) << " " << s.departure.substr(0,10) << '\n';
-      std::cout << "Прибытие: " << s.arrival.substr(11, 5) << " " << s.arrival.substr(0,10) << '\n';
-      std::cout << DurToTime(s.duration) << "в пути" << '\n';
-      if (!s.stops.empty()) {
-        std::cout << "Остановки: " << s.stops << '\n';
-      }
+      PrintDirectRoute(seg);
     }
   }
 }
