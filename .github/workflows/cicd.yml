@@ -33,6 +33,7 @@ jobs:
     uses: is-itmo-cpp/cicd/.github/workflows/codestyle.yml@v2
     with:
       runs-on: itmogus
+      timeout: 7
       cmake-flags: "-DCPR_USE_SYSTEM_CURL=ON"
       levels: |
         [9, 6, 3, 0]
